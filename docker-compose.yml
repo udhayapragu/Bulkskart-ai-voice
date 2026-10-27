@@ -1,0 +1,12 @@
+# Runs the API and dashboard in one container against an external PostgreSQL database
+# (Supabase). Create server/.env from .env.example first.
+services:
+  app:
+    build: .
+    env_file: server/.env
+    environment:
+      NODE_ENV: production
+      WEB_DIST_DIR: /app/web/dist
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
