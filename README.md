@@ -221,3 +221,23 @@ All `/api` routes except `/api/auth/login` and `/api/auth/logout` need a valid s
 - Language switches happen when the supplier speaks in a native script. Romanised speech keeps the current language.
 - Simulated calls use scripted supplier lines and a simulated duration. They do not measure real call quality, latency or speech recognition accuracy.
 - The scheduler runs inside the API process. See the scaling items in `docs/PRODUCTION_READINESS.md` before running more than one instance.
+
+## 12. Vercel deployment (dashboard and API)
+
+Two Vercel projects, both imported from this repository:
+
+- **web** (Root Directory `web`): the dashboard. `web/vercel.json` forwards `/api` and `/webhooks` to the API project, so the session cookie stays on the dashboard's domain.
+- **server** (Root Directory `server`): the API, deployed as a serverless function from `server/api/index.ts`.
+
+Set these environment variables on the **server** project (Settings → Environment Variables), not in the repo: `STORE_DRIVER=postgres`, `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD_HASH`, `SESSION_SECRET`, `TELEPHONY_WEBHOOK_SECRET`, `CRON_SECRET`, and `VOICE_PROVIDER` set to `sarvam` (the mock provider is refused in production).
+
+Run migrations once from your machine against the database: `cd server && npm run build && npm run migrate`.
+
+Serverless functions can't run the background timer. Call the scheduler from an external scheduler every few minutes instead:
+
+```
+GET https://server-sigma-lake-31.vercel.app/api/cron/scheduler
+Authorization: Bearer <CRON_SECRET>
+```
+
+Limits of this setup: the in-memory store is not available (use `postgres`), webhook raw-body signature checks have not been tested behind Vercel's runtime, and campaigns only advance while the external scheduler is calling. The Docker or Render route is better suited to live campaigns.

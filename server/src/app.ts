@@ -5,6 +5,7 @@ import type { Services } from './services/context.js';
 import { createAuthRouter } from './routes/auth.js';
 import { createApiRouter } from './routes/api.js';
 import { createWebhookRouter } from './routes/webhooks.js';
+import { createCronRouter } from './routes/cron.js';
 import { errorHandler } from './routes/http.js';
 
 declare module 'http' {
@@ -42,6 +43,7 @@ export function createApp(services: Services) {
 
   app.use('/api', cookieParser(), express.json({ limit: '256kb' }));
   app.use('/api/auth', createAuthRouter(services));
+  app.use('/api', createCronRouter(services));
   app.use('/api', createApiRouter(services));
 
   if (services.config.WEB_DIST_DIR) {

@@ -34,6 +34,8 @@ const schema = z
     LIVE_CALLING_ENABLED: booleanFromEnv,
     SCHEDULER_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
     SCHEDULER_INTERVAL_SECONDS: z.coerce.number().int().min(5).default(30),
+    // Bearer token that an external scheduler sends to /api/cron/scheduler (serverless hosts).
+    CRON_SECRET: z.string().min(16, 'CRON_SECRET must be at least 16 characters').optional(),
   })
   .superRefine((env, ctx) => {
     if (env.STORE_DRIVER === 'postgres' && !env.DATABASE_URL) {
